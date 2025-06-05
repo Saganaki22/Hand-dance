@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Dance | Interactive Visualization</title>
+    <meta name="description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="favicon.svg">
+    <link rel="manifest" href="favicon/webmanifest.json">
+    <link rel="shortcut icon" href="favicon.svg">
+    <meta property="og:title" content="Hand Dance | Interactive Visualization">
+    <meta property="og:description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <meta property="og:image" content="https://i.ibb.co/j9XDNFmr/og-img.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://drbaph.is-a.dev/Hand-dance/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Hand Dance | Interactive Visualization">
+    <meta name="twitter:description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <meta name="twitter:image" content="https://i.ibb.co/j9XDNFmr/og-img.jpg">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #videoElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            transform: scaleX(-1); /* Mirror the video */
+            transition: opacity 0.3s ease;
+            opacity: 0.56; /* 0.7 * 0.8 = initial opacity */
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            background: transparent;
+        }
+
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        #fpsCounter {
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+        }
+
+        #fpsCounter.show {
+            display: block;
+        }
+
+        #fpsCounter.red {
+            color: #ff4444;
+        }
+
+        #fpsCounter.orange {
+            color: #ff8800;
+        }
+
+        #fpsCounter.green {
+            color: #44ff44;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 20px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            min-width: 300px;
+            max-width: 90vw;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+
+        .control-group label {
+            color: #fff;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slider {
+            width: 80px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toggle-btn.active {
+            background: #ff6b6b;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .dropdown-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            min-width: 120px;
+            justify-content: space-between;
+        }
+
+        .dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .dropdown-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+            font-size: 10px;
+        }
+
+        .dropdown-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            padding: 10px 0;
+            margin-bottom: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 3px solid transparent;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #ff6b6b;
+        }
+
+        .dropdown-item.active {
+            background: rgba(255, 107, 107, 0.2);
+            border-left-color: #ff6b6b;
+        }
+
+        .dropdown-item .description {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: none;
+            letter-spacing: 0;
+            margin-top: 2px;
+        }
+
+        #fullscreenBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 3;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        #menuToggle {
+            position: absolute;
+            top: 20px;
+            right: 120px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 3;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        #fpsToggle {
+            position: absolute;
+            top: 20px;
+            right: 70px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 3;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        #fpsToggle.active {
+            background: rgba(255, 107, 107, 0.7);
+        }
+
+        #menuToggle.active {
+            background: rgba(255, 107, 107, 0.7);
+        }
+
+        #controls.hidden {
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #errorMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 4;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            #controls {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                padding: 15px;
+                min-width: auto;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .control-row {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .control-group {
+                flex: 1;
+                min-width: 60px;
+            }
+
+            .slider {
+                width: 50px;
+            }
+
+            .toggle-btn, .dropdown-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+                min-width: auto;
+                white-space: nowrap;
+            }
+
+            #status {
+                top: 10px;
+                left: 10px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            #fullscreenBtn {
+                top: 10px;
+                right: 10px;
+            }
+
+            #menuToggle {
+                top: 10px;
+                right: 110px;
+            }
+
+            #fpsToggle {
+                top: 10px;
+                right: 60px;
+            }
+
+            #controls.hidden {
+                transform: translateY(100px);
+            }
+
+            .dropdown-menu {
+                min-width: 180px;
+                max-height: 200px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            #controls {
+                padding: 10px 15px;
+            }
+            
+            .control-row {
+                gap: 10px;
+            }
+        }
+
+        /* Custom scrollbar for dropdown */
+        .dropdown-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 107, 0.5);
+            border-radius: 2px;
+        }
+
+        /* GitHub Link Styles */
+        #githubLink {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 3;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        #githubLink svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        #githubLink:hover {
+            background: rgba(255, 107, 107, 0.7);
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            #githubLink {
+                bottom: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+                padding: 10px;
+            }
+
+            #githubLink svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <video id="videoElement" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        
+        <div id="status">
+            <span id="statusText">Initializing...</span>
+            <span id="fpsCounter">0 FPS</span>
+        </div>
+        
+        <button id="fullscreenBtn" title="Toggle Fullscreen">⛶</button>
+        
+        <button id="fpsToggle" title="Toggle FPS">ⓘ</button>
+        <button id="menuToggle" title="Toggle Menu">☰</button>
+
+        <a href="https://github.com/Saganaki22/Hand-dance" id="githubLink" target="_blank" rel="noopener noreferrer" title="View on GitHub">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+        
+        <div id="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Opacity</label>
+                    <input type="range" id="opacitySlider" class="slider" min="0.1" max="1" value="0.7" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label>Rotation</label>
+                    <input type="range" id="rotationSlider" class="slider" min="0" max="5" value="1" step="0.5">
+                </div>
+                <div class="control-group">
+                    <label>Speed</label>
+                    <input type="range" id="speedSlider" class="slider" min="0.1" max="3" value="1" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label>Particles</label>
+                    <input type="range" id="particleSlider" class="slider" min="0.5" max="2" value="1" step="0.5">
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="control-group">
+                    <div class="dropdown-btn" id="effectsDropdown">
+                        <span id="currentEffect">Kaleidoscope</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-menu" id="effectsMenu">
+                        <div class="dropdown-item active" data-effect="kaleidoscope">
+                            Kaleidoscope
+                            <div class="description">4-way symmetrical patterns</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="spiral">
+                            Spiral Galaxy
+                            <div class="description">Swirling cosmic patterns</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="explosive">
+                            Fireworks
+                            <div class="description">Explosive bursts from hands</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="flow">
+                            Liquid Flow
+                            <div class="description">Fluid, flowing particles</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="mandala">
+                            Mandala
+                            <div class="description">8-way sacred geometry</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="aurora">
+                            Aurora
+                            <div class="description">Northern lights effect</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="plasma">
+                            Plasma Storm
+                            <div class="description">Electric energy fields</div>
+                        </div>
+                        <div class="dropdown-item" data-effect="waves">
+                            Water Waves
+                            <div class="description">Ripple waves from fingertips</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="cameraToggle" class="toggle-btn active">Hide Camera</button>
+                <button id="landmarksToggle" class="toggle-btn">Landmarks</button>
+            </div>
+        </div>
+        
+        <div id="errorMessage">
+            <h3>Camera Access Required</h3>
+            <p>Please enable camera permissions to use this app.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <script>
+        class PsychedelicArt {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.video = document.getElementById('videoElement');
+                this.status = document.getElementById('status');
+                this.errorMessage = document.getElementById('errorMessage');
+                
+                // Art properties
+                this.particles = [];
+                this.opacity = 0.7;
+                this.rotationSpeed = 1;
+                this.speed = 1;
+                this.particleCount = 1; // Low=0.5, Medium=1, High=2
+                this.showLandmarks = false;
+                this.showCamera = true;
+                this.showFPS = false;
+                this.currentEffect = 'kaleidoscope';
+                this.hands = [];
+                this.time = 0;
+                this.lastMatrixSpawn = 0;
+                this.fps = 0;
+                this.lastFrameTime = 0;
+                this.frameCount = 0;
+                this.fpsFrameCount = 0;
+                this.lastFPSUpdate = 0;
+                
+                // Performance optimization
+                this.maxParticles = this.isMobile() ? 150 : 300;
+                
+                this.init();
+            }
+            
+            isMobile() {
+                return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+            
+            async init() {
+                this.setupCanvas();
+                this.setupControls();
+                await this.setupCamera();
+                this.setupMediaPipe();
+                this.animate();
+            }
+            
+            setupCanvas() {
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            setupControls() {
+                // Sliders
+                document.getElementById('opacitySlider').addEventListener('input', (e) => {
+                    this.opacity = parseFloat(e.target.value);
+                    // Also control camera opacity when camera is visible
+                    if (this.showCamera) {
+                        this.video.style.opacity = this.opacity * 0.8;
+                    }
+                });
+                
+                document.getElementById('rotationSlider').addEventListener('input', (e) => {
+                    this.rotationSpeed = parseFloat(e.target.value);
+                });
+                
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    this.speed = parseFloat(e.target.value);
+                });
+                
+                document.getElementById('particleSlider').addEventListener('input', (e) => {
+                    this.particleCount = parseFloat(e.target.value);
+                });
+                
+                // Camera toggle
+                document.getElementById('cameraToggle').addEventListener('click', (e) => {
+                    this.showCamera = !this.showCamera;
+                    if (this.showCamera) {
+                        this.video.style.opacity = this.opacity * 0.8;
+                        this.video.style.zIndex = '1';
+                        e.target.textContent = 'Hide Camera';
+                        e.target.classList.add('active');
+                    } else {
+                        this.video.style.opacity = '0';
+                        this.video.style.zIndex = '-1';
+                        e.target.textContent = 'Show Camera';
+                        e.target.classList.remove('active');
+                    }
+                });
+                
+                // Landmarks toggle
+                document.getElementById('landmarksToggle').addEventListener('click', (e) => {
+                    this.showLandmarks = !this.showLandmarks;
+                    e.target.classList.toggle('active', this.showLandmarks);
+                });
+                
+                // Effects dropdown
+                this.setupEffectsDropdown();
+                
+                // Fullscreen
+                document.getElementById('fullscreenBtn').addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen();
+                    } else {
+                        document.exitFullscreen();
+                    }
+                });
+                
+                // FPS toggle
+                document.getElementById('fpsToggle').addEventListener('click', (e) => {
+                    this.showFPS = !this.showFPS;
+                    const fpsCounter = document.getElementById('fpsCounter');
+                    fpsCounter.classList.toggle('show', this.showFPS);
+                    e.target.classList.toggle('active', this.showFPS);
+                });
+                
+                // Menu toggle
+                document.getElementById('menuToggle').addEventListener('click', (e) => {
+                    const controls = document.getElementById('controls');
+                    const isHidden = controls.classList.contains('hidden');
+                    controls.classList.toggle('hidden');
+                    e.target.classList.toggle('active', !isHidden);
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.control-group')) {
+                        this.closeDropdown();
+                    }
+                });
+            }
+            
+            setupEffectsDropdown() {
+                const dropdownBtn = document.getElementById('effectsDropdown');
+                const dropdownMenu = document.getElementById('effectsMenu');
+                const dropdownArrow = dropdownBtn.querySelector('.dropdown-arrow');
+                
+                dropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = dropdownMenu.classList.contains('show');
+                    if (isOpen) {
+                        this.closeDropdown();
+                    } else {
+                        this.openDropdown();
+                    }
+                });
+                
+                // Effect selection
+                dropdownMenu.addEventListener('click', (e) => {
+                    const item = e.target.closest('.dropdown-item');
+                    if (item) {
+                        const effect = item.dataset.effect;
+                        this.selectEffect(effect);
+                        this.closeDropdown();
+                    }
+                });
+            }
+            
+            openDropdown() {
+                const dropdownMenu = document.getElementById('effectsMenu');
+                const dropdownBtn = document.getElementById('effectsDropdown');
+                const dropdownArrow = dropdownBtn.querySelector('.dropdown-arrow');
+                
+                dropdownMenu.classList.add('show');
+                dropdownBtn.classList.add('active');
+                dropdownArrow.classList.add('rotated');
+            }
+            
+            closeDropdown() {
+                const dropdownMenu = document.getElementById('effectsMenu');
+                const dropdownBtn = document.getElementById('effectsDropdown');
+                const dropdownArrow = dropdownBtn.querySelector('.dropdown-arrow');
+                
+                dropdownMenu.classList.remove('show');
+                dropdownBtn.classList.remove('active');
+                dropdownArrow.classList.remove('rotated');
+            }
+            
+            selectEffect(effect) {
+                this.currentEffect = effect;
+                
+                // Get effect name from dropdown item - get only the main text, not description
+                const effectItem = document.querySelector(`[data-effect="${effect}"]`);
+                const effectText = effectItem.firstChild.textContent.trim();
+                
+                // Update UI
+                document.getElementById('currentEffect').textContent = effectText;
+                
+                // Update active state
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                effectItem.classList.add('active');
+                
+                // Clear existing particles for effect change
+                this.particles = [];
+            }
+            
+            async setupCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user'
+                        }
+                    });
+                    
+                    this.video.srcObject = stream;
+                    // Ensure camera is visible initially with current opacity
+                    this.video.style.opacity = this.opacity * 0.8;
+                    this.video.style.zIndex = '1';
+                    document.getElementById('statusText').textContent = 'Camera ready. Show your hands!';
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    this.errorMessage.style.display = 'block';
+                    document.getElementById('statusText').textContent = 'Camera access denied';
+                }
+            }
+            
+            setupMediaPipe() {
+                this.hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+                
+                this.hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                this.hands.onResults((results) => this.onResults(results));
+                
+                if (this.video.srcObject) {
+                    const camera = new Camera(this.video, {
+                        onFrame: async () => {
+                            await this.hands.send({ image: this.video });
+                        },
+                        width: 1280,
+                        height: 720
+                    });
+                    camera.start();
+                }
+            }
+            
+            onResults(results) {
+                this.handsData = results.multiHandLandmarks || [];
+                
+                // Update status
+                const statusText = document.getElementById('statusText');
+                if (this.handsData.length > 0) {
+                    statusText.textContent = `Hands detected: ${this.handsData.length} | Effect: ${this.currentEffect}`;
+                    this.generateParticlesFromHands();
+                } else {
+                    statusText.textContent = `Please show your hands | Effect: ${this.currentEffect}`;
+                }
+            }
+            
+            generateParticlesFromHands() {
+                if (this.particles.length > this.maxParticles * this.particleCount) return;
+                
+                // Special handling for waves effect - limit spawn rate
+                if (this.currentEffect === 'waves') {
+                    if (this.time - this.lastMatrixSpawn < 8) return; // Spawn every 8 frames
+                    this.lastMatrixSpawn = this.time;
+                }
+                
+                this.handsData.forEach((hand, handIndex) => {
+                    const fingertips = [4, 8, 12, 16, 20];
+                    
+                    fingertips.forEach((tipIndex, fingerIndex) => {
+                        const tip = hand[tipIndex];
+                        if (!tip) return;
+                        
+                        const x = (1 - tip.x) * this.canvas.width;
+                        const y = tip.y * this.canvas.height;
+                        
+                        this.createEffectParticles(x, y, handIndex, fingerIndex);
+                    });
+                });
+            }
+            
+            createEffectParticles(x, y, handIndex, fingerIndex) {
+                const baseParticleCount = this.currentEffect === 'waves' ? 2 : (this.isMobile() ? 2 : 4);
+                const actualCount = Math.ceil(baseParticleCount * this.particleCount);
+                
+                for (let i = 0; i < actualCount; i++) {
+                    const particle = {
+                        x: x,
+                        y: y,
+                        life: 1,
+                        decay: 0.005 + Math.random() * 0.01,
+                        hue: (this.time * 2 + handIndex * 60 + fingerIndex * 72) % 360,
+                        size: 2 + Math.random() * 3,
+                        angle: Math.random() * Math.PI * 2,
+                        rotSpeed: (Math.random() - 0.5) * 0.1,
+                        effectData: {}
+                    };
+                    
+                    // Set effect-specific properties
+                    switch (this.currentEffect) {
+                        case 'kaleidoscope':
+                            particle.vx = (Math.random() - 0.5) * 4 * this.speed;
+                            particle.vy = (Math.random() - 0.5) * 4 * this.speed;
+                            break;
+                            
+                        case 'spiral':
+                            particle.effectData.radius = Math.random() * 100 + 50;
+                            particle.effectData.spiralAngle = Math.random() * Math.PI * 2;
+                            particle.effectData.spiralSpeed = 0.02 + Math.random() * 0.03;
+                            break;
+                            
+                        case 'explosive':
+                            const explosiveAngle = Math.random() * Math.PI * 2;
+                            const explosiveSpeed = 2 + Math.random() * 6;
+                            particle.vx = Math.cos(explosiveAngle) * explosiveSpeed * this.speed;
+                            particle.vy = Math.sin(explosiveAngle) * explosiveSpeed * this.speed;
+                            particle.size = 1 + Math.random() * 4;
+                            break;
+                            
+                        case 'flow':
+                            particle.vx = (Math.random() - 0.5) * 2 * this.speed;
+                            particle.vy = (Math.random() - 0.5) * 2 * this.speed;
+                            particle.effectData.flowForce = Math.random() * 0.5;
+                            break;
+                            
+                        case 'mandala':
+                            particle.vx = (Math.random() - 0.5) * 3 * this.speed;
+                            particle.vy = (Math.random() - 0.5) * 3 * this.speed;
+                            break;
+                            
+                        case 'aurora':
+                            particle.vx = (Math.random() - 0.5) * 1 * this.speed;
+                            particle.vy = -Math.random() * 2 * this.speed;
+                            particle.effectData.wave = Math.random() * Math.PI * 2;
+                            particle.size = 3 + Math.random() * 5;
+                            break;
+                            
+                        case 'plasma':
+                            particle.vx = (Math.random() - 0.5) * 3 * this.speed;
+                            particle.vy = (Math.random() - 0.5) * 3 * this.speed;
+                            particle.effectData.electricity = Math.random();
+                            break;
+                            
+                        case 'waves':
+                            particle.effectData.waveRadius = 10;
+                            particle.effectData.maxRadius = 100 + Math.random() * 50;
+                            particle.effectData.waveSpeed = 2 + Math.random() * 2;
+                            particle.effectData.originX = x;
+                            particle.effectData.originY = y;
+                            particle.size = 1 + Math.random();
+                            particle.decay = 0.008 + Math.random() * 0.004;
+                            break;
+                    }
+                    
+                    this.particles.push(particle);
+                }
+            }
+            
+            updateParticles() {
+                this.particles = this.particles.filter(particle => {
+                    particle.life -= particle.decay;
+                    particle.angle += particle.rotSpeed * this.rotationSpeed;
+                    
+                    // Effect-specific updates
+                    switch (this.currentEffect) {
+                        case 'kaleidoscope':
+                            particle.x += particle.vx;
+                            particle.y += particle.vy;
+                            const swirl = Math.sin(this.time * 0.01 + particle.angle) * 0.5;
+                            particle.vx += swirl;
+                            particle.vy += Math.cos(this.time * 0.01 + particle.angle) * 0.5;
+                            break;
+                            
+                        case 'spiral':
+                            particle.effectData.spiralAngle += particle.effectData.spiralSpeed * this.speed;
+                            particle.effectData.radius *= 1.01;
+                            particle.x += Math.cos(particle.effectData.spiralAngle) * 2;
+                            particle.y += Math.sin(particle.effectData.spiralAngle) * 2;
+                            break;
+                            
+                        case 'explosive':
+                            particle.x += particle.vx;
+                            particle.y += particle.vy;
+                            particle.vx *= 0.98;
+                            particle.vy *= 0.98;
+                            break;
+                            
+                        case 'flow':
+                            particle.x += particle.vx;
+                            particle.y += particle.vy;
+                            const flowAngle = Math.atan2(particle.y - this.canvas.height/2, particle.x - this.canvas.width/2);
+                            particle.vx += Math.cos(flowAngle + Math.PI/2) * particle.effectData.flowForce;
+                            particle.vy += Math.sin(flowAngle + Math.PI/2) * particle.effectData.flowForce;
+                            break;
+                            
+                        case 'mandala':
+                            particle.x += particle.vx;
+                            particle.y += particle.vy;
+                            const mandalaSwirl = Math.sin(this.time * 0.02 + particle.angle) * 0.3;
+                            particle.vx += mandalaSwirl;
+                            particle.vy += Math.cos(this.time * 0.02 + particle.angle) * 0.3;
+                            break;
+                            
+                        case 'aurora':
+                            particle.x += particle.vx + Math.sin(this.time * 0.01 + particle.effectData.wave) * 2;
+                            particle.y += particle.vy;
+                            particle.effectData.wave += 0.05;
+                            break;
+                            
+                        case 'plasma':
+                            particle.x += particle.vx;
+                            particle.y += particle.vy;
+                            const plasmaForce = Math.sin(this.time * 0.05 + particle.effectData.electricity * 10) * 1.5;
+                            particle.vx += plasmaForce * 0.1;
+                            particle.vy += Math.cos(this.time * 0.05 + particle.effectData.electricity * 10) * 0.1;
+                            break;
+                            
+                        case 'waves':
+                            // Expand wave radius
+                            particle.effectData.waveRadius += particle.effectData.waveSpeed * this.speed;
+                            
+                            // Update position to stay on wave circle
+                            const waveAngle = particle.angle + this.time * 0.02;
+                            particle.x = particle.effectData.originX + Math.cos(waveAngle) * particle.effectData.waveRadius;
+                            particle.y = particle.effectData.originY + Math.sin(waveAngle) * particle.effectData.waveRadius;
+                            
+                            // Die when wave reaches max radius
+                            if (particle.effectData.waveRadius > particle.effectData.maxRadius) {
+                                particle.life = 0;
+                            }
+                            break;
+                    }
+                    
+                    // Bounce off edges for most effects
+                    if (this.currentEffect !== 'aurora' && this.currentEffect !== 'waves') {
+                        if (particle.x <= 0 || particle.x >= this.canvas.width) particle.vx *= -0.8;
+                        if (particle.y <= 0 || particle.y >= this.canvas.height) particle.vy *= -0.8;
+                    }
+                    
+                    return particle.life > 0;
+                });
+            }
+            
+            drawParticles() {
+                this.ctx.globalCompositeOperation = this.getBlendMode();
+                
+                this.particles.forEach(particle => {
+                    const alpha = particle.life * this.opacity;
+                    this.drawEffectParticle(particle, alpha);
+                });
+                
+                this.ctx.globalCompositeOperation = 'source-over';
+            }
+            
+            getBlendMode() {
+                switch (this.currentEffect) {
+                    case 'plasma': return 'screen';
+                    case 'aurora': return 'lighter';
+                    case 'explosive': return 'screen';
+                    default: return 'screen';
+                }
+            }
+            
+            drawEffectParticle(particle, alpha) {
+                switch (this.currentEffect) {
+                    case 'kaleidoscope':
+                        this.drawSymmetricalParticle(particle, alpha, 4);
+                        break;
+                    case 'mandala':
+                        this.drawSymmetricalParticle(particle, alpha, 8);
+                        break;
+                    case 'spiral':
+                    case 'explosive':
+                    case 'flow':
+                    case 'aurora':
+                    case 'plasma':
+                        this.drawSingleParticle(particle, alpha);
+                        break;
+                    case 'waves':
+                        this.drawWaveParticle(particle, alpha);
+                        break;
+                }
+            }
+            
+            drawSymmetricalParticle(particle, alpha, symmetry = 4) {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const relX = particle.x - centerX;
+                const relY = particle.y - centerY;
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = (i * 2 * Math.PI) / symmetry;
+                    const cos = Math.cos(angle);
+                    const sin = Math.sin(angle);
+                    const rotX = relX * cos - relY * sin;
+                    const rotY = relX * sin + relY * cos;
+                    
+                    this.ctx.save();
+                    this.ctx.translate(centerX + rotX, centerY + rotY);
+                    this.ctx.rotate(particle.angle + angle);
+                    
+                    const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size * 3);
+                    gradient.addColorStop(0, `hsla(${particle.hue + i * 45}, 100%, 70%, ${alpha})`);
+                    gradient.addColorStop(0.5, `hsla(${particle.hue + i * 45 + 60}, 80%, 60%, ${alpha * 0.5})`);
+                    gradient.addColorStop(1, `hsla(${particle.hue + i * 45 + 120}, 60%, 50%, 0)`);
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                }
+            }
+            
+            drawSingleParticle(particle, alpha) {
+                this.ctx.save();
+                this.ctx.translate(particle.x, particle.y);
+                this.ctx.rotate(particle.angle);
+                
+                let gradient;
+                switch (this.currentEffect) {
+                    case 'aurora':
+                        gradient = this.ctx.createLinearGradient(-particle.size, 0, particle.size, 0);
+                        gradient.addColorStop(0, `hsla(${particle.hue}, 70%, 80%, 0)`);
+                        gradient.addColorStop(0.5, `hsla(${particle.hue}, 90%, 70%, ${alpha})`);
+                        gradient.addColorStop(1, `hsla(${particle.hue + 60}, 70%, 80%, 0)`);
+                        break;
+                        
+                    case 'plasma':
+                        gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size * 4);
+                        gradient.addColorStop(0, `hsla(${particle.hue}, 100%, 90%, ${alpha})`);
+                        gradient.addColorStop(0.3, `hsla(${particle.hue + 120}, 100%, 70%, ${alpha * 0.7})`);
+                        gradient.addColorStop(1, `hsla(${particle.hue + 240}, 80%, 50%, 0)`);
+                        break;
+                        
+                    default:
+                        gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size * 3);
+                        gradient.addColorStop(0, `hsla(${particle.hue}, 100%, 70%, ${alpha})`);
+                        gradient.addColorStop(0.5, `hsla(${particle.hue + 60}, 80%, 60%, ${alpha * 0.5})`);
+                        gradient.addColorStop(1, `hsla(${particle.hue + 120}, 60%, 50%, 0)`);
+                }
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                
+                if (this.currentEffect === 'aurora') {
+                    this.ctx.ellipse(0, 0, particle.size * 2, particle.size * 0.5, 0, 0, Math.PI * 2);
+                } else {
+                    this.ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                }
+                
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+            
+            drawWaveParticle(particle, alpha) {
+                this.ctx.save();
+                this.ctx.translate(particle.x, particle.y);
+                
+                // Draw simple circle for wave
+                const waveAlpha = alpha * (1 - particle.effectData.waveRadius / particle.effectData.maxRadius);
+                this.ctx.fillStyle = `hsla(${particle.hue}, 80%, 70%, ${waveAlpha * 0.6})`;
+                this.ctx.strokeStyle = `hsla(${particle.hue}, 100%, 80%, ${waveAlpha})`;
+                this.ctx.lineWidth = particle.size;
+                
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, particle.size + 1, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.stroke();
+                
+                this.ctx.restore();
+            }
+            
+            drawLandmarks() {
+                if (!this.showLandmarks || !this.handsData) return;
+                
+                this.ctx.strokeStyle = '#00ff00';
+                this.ctx.lineWidth = 2;
+                this.ctx.fillStyle = '#ff0000';
+                
+                this.handsData.forEach(hand => {
+                    const connections = [
+                        [0, 1], [1, 2], [2, 3], [3, 4],
+                        [0, 5], [5, 6], [6, 7], [7, 8],
+                        [0, 9], [9, 10], [10, 11], [11, 12],
+                        [0, 13], [13, 14], [14, 15], [15, 16],
+                        [0, 17], [17, 18], [18, 19], [19, 20]
+                    ];
+                    
+                    this.ctx.beginPath();
+                    connections.forEach(([start, end]) => {
+                        const startPoint = hand[start];
+                        const endPoint = hand[end];
+                        if (startPoint && endPoint) {
+                            this.ctx.moveTo((1 - startPoint.x) * this.canvas.width, startPoint.y * this.canvas.height);
+                            this.ctx.lineTo((1 - endPoint.x) * this.canvas.width, endPoint.y * this.canvas.height);
+                        }
+                    });
+                    this.ctx.stroke();
+                    
+                    hand.forEach(landmark => {
+                        this.ctx.beginPath();
+                        this.ctx.arc((1 - landmark.x) * this.canvas.width, landmark.y * this.canvas.height, 3, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    });
+                });
+            }
+            
+            animate() {
+                this.frameCount++;
+                this.time++;
+                this.fpsFrameCount++;
+                
+                // Calculate FPS
+                const currentTime = performance.now();
+                if (currentTime - this.lastFPSUpdate >= 1000) {
+                    this.fps = Math.round((this.fpsFrameCount * 1000) / (currentTime - this.lastFPSUpdate));
+                    this.fpsFrameCount = 0;
+                    this.lastFPSUpdate = currentTime;
+                    
+                    // Update FPS display
+                    if (this.showFPS) {
+                        const fpsCounter = document.getElementById('fpsCounter');
+                        fpsCounter.textContent = `${this.fps} FPS`;
+                        
+                        // Color code FPS
+                        fpsCounter.className = 'show';
+                        if (this.fps < 20) {
+                            fpsCounter.classList.add('red');
+                        } else if (this.fps < 25) {
+                            fpsCounter.classList.add('orange');
+                        } else {
+                            fpsCounter.classList.add('green');
+                        }
+                    }
+                }
+                
+                // Clear canvas with effect-appropriate trail but keep transparent
+                if (this.showCamera) {
+                    // When camera is showing, use very light trail to keep transparency
+                    const trailOpacity = this.currentEffect === 'aurora' ? 0.02 : 0.05;
+                    this.ctx.fillStyle = `rgba(0, 0, 0, ${trailOpacity})`;
+                } else {
+                    // When camera is hidden, use black background
+                    const trailOpacity = this.currentEffect === 'aurora' ? 0.05 : 0.1;
+                    this.ctx.fillStyle = `rgba(0, 0, 0, ${trailOpacity / this.opacity})`;
+                }
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.updateParticles();
+                this.drawParticles();
+                this.drawLandmarks();
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            new PsychedelicArt();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | Hand Dance</title>
+    <meta name="description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="favicon.svg">
+    <link rel="manifest" href="favicon/webmanifest.json">
+    <link rel="shortcut icon" href="favicon.svg">
+    <meta property="og:title" content="404 - Page Not Found | Hand Dance">
+    <meta property="og:description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <meta property="og:image" content="https://i.ibb.co/j9XDNFmr/og-img.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://drbaph.is-a.dev/Hand-dance/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="404 - Page Not Found | Hand Dance">
+    <meta name="twitter:description" content="Create beautiful psychedelic art with your hands using this interactive web application. Explore various effects and create mesmerizing patterns!">
+    <meta name="twitter:image" content="https://i.ibb.co/j9XDNFmr/og-img.jpg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.1;
+        }
+
+        .particle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #ff6b6b, transparent);
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #4ecdc4, transparent);
+            top: 60%;
+            left: 80%;
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #45b7d1, transparent);
+            top: 40%;
+            left: 60%;
+            animation-delay: 4s;
+        }
+
+        .particle:nth-child(4) {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #f9ca24, transparent);
+            top: 80%;
+            left: 20%;
+            animation-delay: 1s;
+        }
+
+        .particle:nth-child(5) {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #6c5ce7, transparent);
+            top: 10%;
+            left: 70%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.1;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 0.3;
+            }
+        }
+
+        /* Kaleidoscope effect */
+        .kaleidoscope {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            opacity: 0.05;
+        }
+
+        .kaleidoscope::before,
+        .kaleidoscope::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(
+                from 0deg,
+                #ff6b6b 0deg,
+                #4ecdc4 60deg,
+                #45b7d1 120deg,
+                #f9ca24 180deg,
+                #6c5ce7 240deg,
+                #ff6b6b 300deg,
+                #4ecdc4 360deg
+            );
+            border-radius: 50%;
+            animation: spin 20s linear infinite;
+        }
+
+        .kaleidoscope::after {
+            animation-direction: reverse;
+            animation-duration: 30s;
+            opacity: 0.5;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main container */
+        .container {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .error-card {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 60px 40px 50px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent,
+                rgba(255, 107, 107, 0.1),
+                transparent,
+                rgba(78, 205, 196, 0.1),
+                transparent
+            );
+            animation: rotate 10s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .error-number {
+            font-size: clamp(80px, 15vw, 150px);
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease-in-out infinite;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .error-title {
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 15px;
+            color: #fff;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .error-message {
+            font-size: clamp(14px, 3vw, 18px);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: #fff;
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+
+        /* Hand emoji animation */
+        .hand-wave {
+            display: inline-block;
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(20deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        /* Responsive design */
+        @media (min-width: 768px) {
+            .button-group {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 60px 40px;
+            }
+
+            .error-card {
+                padding: 80px 60px 60px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .error-card {
+                padding: 100px 80px 80px;
+            }
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .error-card {
+                padding: 40px 25px 35px;
+                border-radius: 20px;
+            }
+
+            .btn {
+                min-width: 180px;
+                padding: 12px 25px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Kaleidoscope background effect -->
+    <div class="kaleidoscope"></div>
+
+    <!-- Main content -->
+    <div class="container">
+        <div class="error-card">
+            <div class="error-number">404</div>
+            <h1 class="error-title">Page Not Found</h1>
+            <p class="error-message">
+                Looks like this page danced away! <span class="hand-wave">👋</span><br>
+                The page you're looking for doesn't exist or has been moved to another dimension.
+            </p>
+            
+            <div class="button-group">
+                <a href="index.html" class="btn btn-primary">
+                    <span class="icon">🏠</span>
+                    Back to Home
+                </a>
+                <a href="https://github.com/Saganaki22/Hand-dance" target="_blank" class="btn btn-secondary">
+                    <span class="icon">⚡</span>
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive particle effects on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach((particle, index) => {
+                const speed = (index + 1) * 0.02;
+                const x = (e.clientX * speed) % window.innerWidth;
+                const y = (e.clientY * speed) % window.innerHeight;
+                
+                particle.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+
+        // Add click effect to buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.5);
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    left: ${e.offsetX - 10}px;
+                    top: ${e.offsetY - 10}px;
+                    width: 20px;
+                    height: 20px;
+                    pointer-events: none;
+                `;
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

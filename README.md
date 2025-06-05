@@ -169,3 +169,6 @@ Optimized for smooth performance across devices:
 - **Low-end devices**: Automatic quality reduction for stable performance
 
 ---
+
+![og-img](https://github.com/user-attachments/assets/6562ba54-5a1e-4128-97be-a763fd208bda)
+

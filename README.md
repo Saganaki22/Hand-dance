@@ -19,10 +19,11 @@
 </div>
 
 ---
+<div align="center">
 
+![ezgif-1a56941cb20ced](https://github.com/user-attachments/assets/83008552-1a01-403d-b335-3091049e63e0)
 
-https://github.com/user-attachments/assets/ed07552c-3d09-428c-abb2-7591ccf41427
-
+</div>
 
 ---
 
